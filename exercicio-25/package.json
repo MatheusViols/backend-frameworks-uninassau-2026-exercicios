@@ -1,0 +1,30 @@
+{
+  "name": "exercicio-25-websockets",
+  "version": "1.0.0",
+  "description": "Chat em tempo real com Socket.io",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest --coverage"
+  },
+  "keywords": ["websockets", "socket.io", "chat", "real-time"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.6.1",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.5.0",
+    "nodemon": "^3.0.1",
+    "socket.io-client": "^4.6.1",
+    "supertest": "^6.3.3"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coveragePathIgnorePatterns": ["/node_modules/"],
+    "testTimeout": 10000
+  }
+}

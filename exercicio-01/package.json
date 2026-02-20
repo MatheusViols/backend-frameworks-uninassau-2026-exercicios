@@ -1,0 +1,25 @@
+{
+  "name": "exercicio-01-primeiro-servidor-express",
+  "version": "1.0.0",
+  "description": "Exercício 01 - Primeiro servidor Express",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "jest --verbose",
+    "test:watch": "jest --watch"
+  },
+  "keywords": ["express", "nodejs", "backend"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coveragePathIgnorePatterns": ["/node_modules/"]
+  }
+}

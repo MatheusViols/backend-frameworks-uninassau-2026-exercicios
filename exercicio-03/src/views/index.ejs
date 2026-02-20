@@ -1,0 +1,49 @@
+<%- include('partials/header') %>
+
+<h2>Lista de Produtos</h2>
+
+<% if (products.length === 0) { %>
+  <p style="color: #666; margin: 2rem 0;">Nenhum produto cadastrado ainda.</p>
+  <a href="/products/create" style="display: inline-block; padding: 0.75rem 1.5rem; background: #007bff; color: white; text-decoration: none; border-radius: 4px;">
+    Adicionar Primeiro Produto
+  </a>
+<% } else { %>
+  <table style="width: 100%; border-collapse: collapse; background: white; margin: 1rem 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <thead>
+      <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+        <th style="padding: 1rem; text-align: left;">ID</th>
+        <th style="padding: 1rem; text-align: left;">Nome</th>
+        <th style="padding: 1rem; text-align: right;">Preço</th>
+        <th style="padding: 1rem; text-align: right;">Estoque</th>
+        <th style="padding: 1rem; text-align: center;">Criado em</th>
+        <th style="padding: 1rem; text-align: center;">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% products.forEach(product => { %>
+        <tr style="border-bottom: 1px solid #dee2e6;">
+          <td style="padding: 1rem;"><%= product.id %></td>
+          <td style="padding: 1rem;"><strong><%= product.name %></strong></td>
+          <td style="padding: 1rem; text-align: right;">R$ <%= product.price.toFixed(2) %></td>
+          <td style="padding: 1rem; text-align: right;"><%= product.stock %> un</td>
+          <td style="padding: 1rem; text-align: center; font-size: 0.9rem; color: #666;">
+            <%= new Date(product.createdAt).toLocaleDateString('pt-BR') %>
+          </td>
+          <td style="padding: 1rem; text-align: center;">
+            <form method="POST" action="/products/<%= product.id %>/delete" style="display: inline;">
+              <button type="submit" style="padding: 0.5rem 1rem; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Deletar
+              </button>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  
+  <a href="/products/create" style="display: inline-block; padding: 0.75rem 1.5rem; background: #28a745; color: white; text-decoration: none; border-radius: 4px; margin-top: 1rem;">
+    + Adicionar Produto
+  </a>
+<% } %>
+
+<%- include('partials/footer') %>

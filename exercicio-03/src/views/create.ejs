@@ -1,0 +1,85 @@
+<%- include('partials/header') %>
+
+<h2>Adicionar Novo Produto</h2>
+
+<% if (errors && errors.length > 0) { %>
+  <div style="background: #f8d7da; color: #721c24; padding: 1rem; border-radius: 4px; margin: 1rem 0; border: 1px solid #f5c6cb;">
+    <strong>Erros de validação:</strong>
+    <ul style="margin: 0.5rem 0 0 1.5rem;">
+      <% errors.forEach(error => { %>
+        <li><%= error %></li>
+      <% }) %>
+    </ul>
+  </div>
+<% } %>
+
+<form method="POST" action="/products" style="background: white; padding: 2rem; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 600px;">
+  
+  <div style="margin-bottom: 1.5rem;">
+    <label for="name" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">
+      Nome do Produto:
+    </label>
+    <input 
+      type="text" 
+      id="name" 
+      name="name" 
+      required 
+      minlength="3"
+      style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;"
+      placeholder="Ex: Notebook Dell Inspiron"
+    >
+    <small style="color: #666; display: block; margin-top: 0.25rem;">Mínimo 3 caracteres</small>
+  </div>
+
+  <div style="margin-bottom: 1.5rem;">
+    <label for="price" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">
+      Preço (R$):
+    </label>
+    <input 
+      type="number" 
+      id="price" 
+      name="price" 
+      required 
+      min="0" 
+      step="0.01"
+      style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;"
+      placeholder="Ex: 2500.00"
+    >
+    <small style="color: #666; display: block; margin-top: 0.25rem;">Valor positivo</small>
+  </div>
+
+  <div style="margin-bottom: 1.5rem;">
+    <label for="stock" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">
+      Estoque:
+    </label>
+    <input 
+      type="number" 
+      id="stock" 
+      name="stock" 
+      required 
+      min="0" 
+      step="1"
+      style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;"
+      placeholder="Ex: 10"
+    >
+    <small style="color: #666; display: block; margin-top: 0.25rem;">Número inteiro não-negativo</small>
+  </div>
+
+  <div style="display: flex; gap: 1rem;">
+    <button 
+      type="submit" 
+      style="flex: 1; padding: 0.75rem; background: #007bff; color: white; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer;"
+    >
+      Criar Produto
+    </button>
+    <a 
+      href="/" 
+      style="flex: 1; padding: 0.75rem; background: #6c757d; color: white; border: none; border-radius: 4px; font-size: 1rem; text-align: center; text-decoration: none; display: block;"
+    >
+      Cancelar
+    </a>
+  </div>
+
+</form>
+
+<%- include('partials/footer') %>

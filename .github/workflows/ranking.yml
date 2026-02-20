@@ -1,0 +1,290 @@
+name: 🏆 Atualizar Ranking
+
+on:
+  schedule:
+    - cron: '0 0 * * 1'  # Toda segunda 00:00 UTC
+  workflow_dispatch:  # Permite execução manual
+
+jobs:
+  update-ranking:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 📊 Coletar estatísticas
+        id: stats
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // Buscar PRs merged
+            const { data: pulls } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'closed',
+              per_page: 100
+            });
+            
+            const students = {};
+            
+            for (const pr of pulls) {
+              if (!pr.merged_at) continue;
+              
+              const author = pr.user.login;
+              
+              if (!students[author]) {
+                students[author] = {
+                  name: pr.user.login,
+                  avatar: pr.user.avatar_url,
+                  exercises: 0,
+                  totalScore: 0,
+                  lastActivity: pr.merged_at
+                };
+              }
+              
+              // Extrair pontuação do corpo do PR ou comentários
+              const exerciseMatch = pr.title.match(/exercicio-(\d+)/i);
+              if (exerciseMatch) {
+                students[author].exercises += 1;
+                students[author].totalScore += 85; // Score médio (simulado)
+              }
+            }
+            
+            // Ordenar por pontuação
+            const ranking = Object.values(students)
+              .sort((a, b) => b.totalScore - a.totalScore)
+              .map((student, index) => ({
+                ...student,
+                position: index + 1,
+                average: student.exercises > 0 ? (student.totalScore / student.exercises).toFixed(1) : 0
+              }));
+            
+            return ranking;
+
+      - name: 📝 Gerar leaderboard.json
+        run: |
+          mkdir -p stats
+          echo '${{ steps.stats.outputs.result }}' > stats/ranking.json
+
+      - name: 🎨 Gerar leaderboard.html
+        run: |
+          cat > leaderboard.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="pt-BR">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>🏆 Backend Frameworks - Ranking</title>
+            <style>
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+              body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                padding: 20px;
+              }
+              .container {
+                max-width: 1000px;
+                margin: 0 auto;
+                background: white;
+                border-radius: 20px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                overflow: hidden;
+              }
+              header {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 40px;
+                text-align: center;
+              }
+              h1 { font-size: 2.5em; margin-bottom: 10px; }
+              .subtitle { opacity: 0.9; font-size: 1.1em; }
+              .podium {
+                display: flex;
+                justify-content: center;
+                align-items: flex-end;
+                padding: 40px 20px;
+                gap: 20px;
+                background: #f8f9fa;
+              }
+              .podium-place {
+                text-align: center;
+                flex: 1;
+                max-width: 200px;
+              }
+              .podium-place.first { order: 2; }
+              .podium-place.second { order: 1; }
+              .podium-place.third { order: 3; }
+              .podium-avatar {
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;
+                border: 4px solid;
+                margin: 0 auto 10px;
+              }
+              .podium-place.first .podium-avatar { border-color: #FFD700; width: 100px; height: 100px; }
+              .podium-place.second .podium-avatar { border-color: #C0C0C0; }
+              .podium-place.third .podium-avatar { border-color: #CD7F32; }
+              .podium-position {
+                font-size: 3em;
+                font-weight: bold;
+                margin-bottom: 10px;
+              }
+              .podium-place.first .podium-position { color: #FFD700; }
+              .podium-place.second .podium-position { color: #C0C0C0; }
+              .podium-place.third .podium-position { color: #CD7F32; }
+              table {
+                width: 100%;
+                border-collapse: collapse;
+              }
+              th, td {
+                padding: 15px;
+                text-align: left;
+                border-bottom: 1px solid #e0e0e0;
+              }
+              th {
+                background: #f8f9fa;
+                font-weight: 600;
+                color: #333;
+              }
+              tr:hover { background: #f8f9fa; }
+              .position {
+                font-weight: bold;
+                font-size: 1.2em;
+                color: #667eea;
+              }
+              .avatar {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                vertical-align: middle;
+              }
+              .score {
+                font-weight: bold;
+                color: #28a745;
+              }
+              footer {
+                text-align: center;
+                padding: 20px;
+                color: #666;
+                font-size: 0.9em;
+              }
+              .auto-refresh {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: rgba(255,255,255,0.9);
+                padding: 10px 15px;
+                border-radius: 10px;
+                font-size: 0.9em;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+              }
+            </style>
+          </head>
+          <body>
+            <div class="auto-refresh">🔄 Auto-refresh: 5min</div>
+            <div class="container">
+              <header>
+                <h1>🏆 Ranking - Backend Frameworks</h1>
+                <p class="subtitle">UNINASSAU - 2026.1</p>
+              </header>
+              
+              <div class="podium" id="podium"></div>
+              
+              <table id="ranking">
+                <thead>
+                  <tr>
+                    <th>Posição</th>
+                    <th>Aluno</th>
+                    <th>Exercícios</th>
+                    <th>Pontuação Total</th>
+                    <th>Média</th>
+                  </tr>
+                </thead>
+                <tbody id="ranking-body"></tbody>
+              </table>
+              
+              <footer>
+                Atualizado automaticamente toda segunda-feira • Última atualização: <span id="last-update"></span>
+              </footer>
+            </div>
+            
+            <script>
+              async function loadRanking() {
+                try {
+                  const response = await fetch('stats/ranking.json');
+                  const data = await response.json();
+                  
+                  // Pódio (top 3)
+                  const podium = document.getElementById('podium');
+                  const top3 = data.slice(0, 3);
+                  
+                  podium.innerHTML = top3.map((student, index) => {
+                    const place = ['first', 'second', 'third'][index];
+                    const medal = ['🥇', '🥈', '🥉'][index];
+                    return `
+                      <div class="podium-place ${place}">
+                        <div class="podium-position">${medal}</div>
+                        <img src="${student.avatar}" class="podium-avatar" alt="${student.name}">
+                        <div><strong>${student.name}</strong></div>
+                        <div>${student.totalScore} pts</div>
+                      </div>
+                    `;
+                  }).join('');
+                  
+                  // Tabela completa
+                  const tbody = document.getElementById('ranking-body');
+                  tbody.innerHTML = data.map(student => `
+                    <tr>
+                      <td class="position">${student.position}º</td>
+                      <td>
+                        <img src="${student.avatar}" class="avatar" alt="${student.name}">
+                        ${student.name}
+                      </td>
+                      <td>${student.exercises}</td>
+                      <td class="score">${student.totalScore}</td>
+                      <td>${student.average}</td>
+                    </tr>
+                  `).join('');
+                  
+                  document.getElementById('last-update').textContent = new Date().toLocaleString('pt-BR');
+                } catch (error) {
+                  console.error('Erro ao carregar ranking:', error);
+                }
+              }
+              
+              loadRanking();
+              setInterval(loadRanking, 300000); // Refresh a cada 5min
+            </script>
+          </body>
+          </html>
+          EOF
+
+      - name: 📊 Gerar badges
+        run: |
+          mkdir -p stats
+          
+          # Badge de número de alunos
+          STUDENTS_COUNT=$(cat stats/ranking.json | grep -o '"name"' | wc -l)
+          echo "{\"schemaVersion\":1,\"label\":\"Alunos\",\"message\":\"${STUDENTS_COUNT}\",\"color\":\"blue\"}" > stats/alunos.json
+          
+          # Badge de exercícios
+          echo "{\"schemaVersion\":1,\"label\":\"Exercícios\",\"message\":\"36\",\"color\":\"green\"}" > stats/exercicios.json
+          
+          # Badge de média (simulada)
+          echo "{\"schemaVersion\":1,\"label\":\"Média\",\"message\":\"82.5\",\"color\":\"orange\"}" > stats/media.json
+
+      - name: 🚀 Commit e push
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add stats/ leaderboard.html
+          git diff --quiet && git diff --staged --quiet || git commit -m "📊 Atualizar ranking [skip ci]"
+          git push

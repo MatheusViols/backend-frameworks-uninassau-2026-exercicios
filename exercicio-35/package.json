@@ -1,0 +1,22 @@
+{
+  "name": "exercicio-35-monitoring",
+  "version": "1.0.0",
+  "description": "Sistema de monitoramento e métricas",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest"
+  },
+  "keywords": ["monitoring", "metrics", "health-check"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "jest": "^29.5.0",
+    "nodemon": "^3.0.1",
+    "supertest": "^6.3.3"
+  }
+}

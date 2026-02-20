@@ -1,0 +1,21 @@
+{
+  "name": "exercicio-20-swagger-docs",
+  "version": "1.0.0",
+  "description": "Exercício de documentação com Swagger",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "keywords": ["swagger", "openapi", "documentation"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}

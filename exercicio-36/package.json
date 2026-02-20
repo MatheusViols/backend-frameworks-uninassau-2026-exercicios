@@ -1,0 +1,48 @@
+{
+  "name": "exercicio-36-ecommerce-api",
+  "version": "1.0.0",
+  "description": "API completa de e-commerce - Projeto Final",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "test": "jest --coverage",
+    "test:unit": "jest tests/unit",
+    "test:integration": "jest tests/integration",
+    "test:e2e": "jest tests/e2e",
+    "test:watch": "jest --watch",
+    "lint": "eslint src/ tests/",
+    "lint:fix": "eslint src/ tests/ --fix",
+    "migrate": "node src/database/migrate.js",
+    "seed": "node src/database/seed.js"
+  },
+  "keywords": ["ecommerce", "api", "rest", "final-project"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "pg": "^8.11.0",
+    "redis": "^4.6.7",
+    "bcrypt": "^5.1.0",
+    "jsonwebtoken": "^9.0.0",
+    "express-validator": "^7.0.1",
+    "express-rate-limit": "^6.7.0",
+    "helmet": "^7.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "winston": "^3.10.0",
+    "swagger-ui-express": "^5.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.5.0",
+    "supertest": "^6.3.3",
+    "nodemon": "^3.0.1",
+    "eslint": "^8.43.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coveragePathIgnorePatterns": ["/node_modules/"],
+    "testMatch": ["**/tests/**/*.test.js"],
+    "collectCoverageFrom": ["src/**/*.js"]
+  }
+}

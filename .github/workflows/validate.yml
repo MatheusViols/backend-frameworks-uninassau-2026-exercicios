@@ -1,0 +1,153 @@
+name: ✅ Validação Automática
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 🔍 Detectar exercícios modificados
+        id: changes
+        run: |
+          CHANGED_DIRS=$(git diff --name-only HEAD^ HEAD | grep '^exercicio-' | cut -d'/' -f1 | sort -u)
+          echo "changed_dirs=${CHANGED_DIRS}" >> $GITHUB_OUTPUT
+          echo "Exercícios modificados: ${CHANGED_DIRS}"
+
+      - name: 📦 Instalar dependências
+        run: |
+          for dir in ${{ steps.changes.outputs.changed_dirs }}; do
+            if [ -d "$dir" ] && [ -f "$dir/package.json" ]; then
+              echo "📦 Instalando dependências de $dir..."
+              cd $dir
+              npm ci || npm install
+              cd ..
+            fi
+          done
+
+      - name: 🧪 Executar testes
+        id: tests
+        run: |
+          TOTAL_SCORE=0
+          TESTS_PASSED=0
+          TESTS_FAILED=0
+          
+          for dir in ${{ steps.changes.outputs.changed_dirs }}; do
+            if [ -d "$dir" ] && [ -f "$dir/package.json" ]; then
+              echo "🧪 Testando $dir..."
+              cd $dir
+              
+              if npm test; then
+                echo "✅ Testes passaram em $dir"
+                TESTS_PASSED=$((TESTS_PASSED + 1))
+                SCORE=70
+              else
+                echo "❌ Testes falharam em $dir"
+                TESTS_FAILED=$((TESTS_FAILED + 1))
+                SCORE=0
+              fi
+              
+              TOTAL_SCORE=$((TOTAL_SCORE + SCORE))
+              cd ..
+            fi
+          done
+          
+          echo "tests_passed=${TESTS_PASSED}" >> $GITHUB_OUTPUT
+          echo "tests_failed=${TESTS_FAILED}" >> $GITHUB_OUTPUT
+          echo "score=${TOTAL_SCORE}" >> $GITHUB_OUTPUT
+
+      - name: 🎨 Verificar qualidade do código (ESLint)
+        id: lint
+        continue-on-error: true
+        run: |
+          QUALITY_SCORE=0
+          
+          for dir in ${{ steps.changes.outputs.changed_dirs }}; do
+            if [ -d "$dir" ] && [ -f "$dir/package.json" ]; then
+              cd $dir
+              
+              if npm run lint --if-present 2>/dev/null; then
+                echo "✅ Linter passou em $dir"
+                QUALITY_SCORE=$((QUALITY_SCORE + 15))
+              else
+                echo "⚠️ Linter encontrou problemas em $dir"
+                QUALITY_SCORE=$((QUALITY_SCORE + 5))
+              fi
+              
+              cd ..
+            fi
+          done
+          
+          echo "quality_score=${QUALITY_SCORE}" >> $GITHUB_OUTPUT
+
+      - name: 📊 Calcular pontuação final
+        id: score
+        run: |
+          FINAL_SCORE=$((${{ steps.tests.outputs.score }} + ${{ steps.lint.outputs.quality_score }}))
+          
+          if [ $FINAL_SCORE -ge 85 ]; then
+            GRADE="🏆 Excelente"
+          elif [ $FINAL_SCORE -ge 70 ]; then
+            GRADE="✅ Bom"
+          elif [ $FINAL_SCORE -ge 50 ]; then
+            GRADE="⚠️ Regular"
+          else
+            GRADE="❌ Insuficiente"
+          fi
+          
+          echo "final_score=${FINAL_SCORE}" >> $GITHUB_OUTPUT
+          echo "grade=${GRADE}" >> $GITHUB_OUTPUT
+
+      - name: 💬 Comentar no PR
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const score = ${{ steps.score.outputs.final_score }};
+            const grade = '${{ steps.score.outputs.grade }}';
+            const testsPassed = ${{ steps.tests.outputs.tests_passed }};
+            const testsFailed = ${{ steps.tests.outputs.tests_failed }};
+            
+            const body = `## 🤖 Validação Automática
+            
+            ### Pontuação: ${score}/100 ${grade}
+            
+            #### Detalhes:
+            - ✅ Testes passaram: ${testsPassed}
+            - ❌ Testes falharam: ${testsFailed}
+            - 🎨 Qualidade do código: ${{ steps.lint.outputs.quality_score }}/15
+            
+            #### Próximos passos:
+            ${score >= 70 ? '🎉 Parabéns! Sua solução foi aprovada!' : '⚠️ Revise seu código e tente novamente. Consulte os logs acima para mais detalhes.'}
+            
+            ---
+            
+            💡 **Dica:** Execute \`npm test\` localmente antes de enviar para evitar falhas.
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+      - name: ✅ Verificar aprovação
+        if: steps.score.outputs.final_score < 70
+        run: |
+          echo "❌ Pontuação insuficiente: ${{ steps.score.outputs.final_score }}/100"
+          echo "Mínimo necessário: 70/100"
+          exit 1

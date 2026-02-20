@@ -1,0 +1,20 @@
+{
+  "name": "exercicio-22-versionamento-api",
+  "version": "1.0.0",
+  "description": "Exercício de versionamento de API",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "jest --verbose"
+  },
+  "keywords": ["versioning", "api", "express"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3"
+  }
+}
