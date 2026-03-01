@@ -80,8 +80,8 @@ npm start
 
 **Criar produto:**
 ```bash
-curl -X POST http://localhost:3000/products \
-  -H "Content-Type: application/json" \
+curl -x post http://localhost:3000/products \
+  -h "content-type: application/json" \
   -d '{"name":"Notebook","price":2500,"stock":10}'
 ```
 

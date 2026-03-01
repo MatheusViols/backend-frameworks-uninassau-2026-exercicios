@@ -24,3 +24,35 @@
 // - Retorne 400 para dados inválidos
 // - Retorne 201 ao criar um produto
 
+let products = [];
+let nextId = 1;
+
+function index(req, res) {
+	res.status(200).json(products);
+}
+function store(req, res) {
+	const body = req.body;
+	const bodyCompleto = 
+		("name"  in body && body.name  != undefined) &&
+		("price" in body && body.price != undefined) &&
+		("stock" in body && body.stock != undefined);
+
+	if(bodyCompleto) {
+		const produto = {
+			id: nextId++,
+			name: body.name,
+			price: body.price,
+			stock: body.stock,
+		};
+
+		products.push(produto);
+		res.status(201).json(produto);
+	} else {
+		res.status(400).json({error: 'Dados inválidos'});
+	}
+}
+
+module.exports = {
+	index,
+	store
+};
